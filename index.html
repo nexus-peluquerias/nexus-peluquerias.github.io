@@ -194,7 +194,7 @@ function elegirLugar(){
     h+='<button onclick="irALugar('+i+')" style="text-align:left">'+esc(l.nombre||'App '+(i+1))+'<br><small style="font-size:15px;color:#7A6D60;font-weight:400">'+tipo+(l.id===ID?' · abierta ahora':'')+'</small></button>';
   });
   // En el móvil de la dueña (donde se ha abierto el panel), también se puede volver al panel.
-  if(guardado('panel_id'))h+='<button onclick="location.href=\'panel.html?c=\'+encodeURIComponent(guardado(\'panel_id\'))" style="text-align:left;background:#2B241E;color:#fff;border-color:#2B241E">👑 Panel de la dueña<br><small style="font-size:15px;opacity:.8;font-weight:400">Hoy, citas, productos y el mes</small></button>';
+  if(guardado('panel_id'))h+='<button onclick="location.href=\'panel.html?c=\'+encodeURIComponent(guardado(\'panel_id\'))" style="text-align:left;background:#2B241E;color:#fff;border-color:#2B241E">👑 Tu panel<br><small style="font-size:15px;opacity:.8;font-weight:400">Hoy, citas, productos y el mes</small></button>';
   h+='</div><button class="enlace" onclick="if(datos){inicio();}else{pedirCodigo();}">← Volver</button>';
   pintar(h);
 }
@@ -321,7 +321,7 @@ function ncDia(i){
 function ncHora(j){
   nc.hora=nc.dia.horas[j];
   pintar('<div class="elegido"><span>'+esc(nc.servicio.nombre)+' · '+esc(nc.hora.e)+'</span><span>'+esc(nc.dia.etiqueta)+' '+esc(nc.hora.h)+'</span></div>'+
-    '<input class="campo" id="nNombre" placeholder="Nombre de la clienta" autocomplete="off">'+
+    '<input class="campo" id="nNombre" placeholder="Nombre" autocomplete="off">'+
     '<input class="campo" id="nTel" placeholder="Teléfono" inputmode="tel" autocomplete="off">'+
     '<input class="campo" id="nNota" placeholder="Nota (opcional)" autocomplete="off">'+
     '<button class="ok" onclick="ncGuardar()">Guardar la cita</button><button class="enlace" onclick="ncDia(nc.dias.indexOf(nc.dia))">← Otra hora</button>');
@@ -334,7 +334,7 @@ function ncGuardar(){
 }
 function siguienteDia(d){var f=new Date(d+'T12:00:00');f.setDate(f.getDate()+1);return f.toISOString().slice(0,10);}
 function nuevoToken(){try{return crypto.randomUUID();}catch(e){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,function(c){var r=Math.random()*16|0;return (c==='x'?r:(r&3|8)).toString(16);});}}
-function empezar(){ if(!ID){app.innerHTML='<div class="cuerpo"><h2>Falta el enlace de tu peluquería</h2><p>Abre el enlace que te ha pasado la dueña (lleva <b>?c=</b> al final).</p></div>';return;} if(!codigo){pedirCodigo();return;} servidor('datosApp',[codigo],function(d){datos=d; recordarLugar(); if(esNexus())elegirModuloInicial(); if(!quien||d.empleadas.indexOf(quien)===-1){elegirNombre();}else{inicio();}}); }
+function empezar(){ if(!ID){app.innerHTML='<div class="cuerpo"><h2>Falta el enlace de tu peluquería</h2><p>Abre el enlace que te han pasado en la peluquería (lleva <b>?c=</b> al final).</p></div>';return;} if(!codigo){pedirCodigo();return;} servidor('datosApp',[codigo],function(d){datos=d; recordarLugar(); if(esNexus())elegirModuloInicial(); if(!quien||d.empleadas.indexOf(quien)===-1){elegirNombre();}else{inicio();}}); }
 // ---- teclado numérico reutilizable ----
 var tec={valor:'',max:4,decimales:false,alAceptar:null};
 function teclado(titulo,inicial,decimales,alAceptar,textoBoton,extra){
@@ -360,7 +360,7 @@ function pulsar(t){
 function pedirCodigo(error){
   datos=null;
   teclado('Código de la caja','',false,function(v){codigo=v;guardado(K_COD,v);empezar();},'Entrar',
-    (error?'<div class="aviso">'+esc(error)+'</div>':'')+'<p style="text-align:center;color:#7A6D60;margin:0 0 6px">Solo la primera vez. Te lo da la dueña.</p>');
+    (error?'<div class="aviso">'+esc(error)+'</div>':'')+'<p style="text-align:center;color:#7A6D60;margin:0 0 6px">Solo la primera vez. Te lo dan en la peluquería.</p>');
 }
 function elegirNombre(){
   var h='<div class="titulo">¿Quién eres?</div><div class="lista">';

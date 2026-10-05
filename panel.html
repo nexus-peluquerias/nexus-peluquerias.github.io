@@ -141,15 +141,15 @@ function servidor(cuerpo,bien){
   enviar();
 }
 function empezar(){
-  if(!ID){app.innerHTML='<div class="cuerpo"><h2>Falta el enlace de tu panel</h2><p>Está en tu hoja de la Caja, pestaña "App del móvil".</p></div>';return;}
+  if(!ID){app.innerHTML='<div class="cuerpo"><h2>Falta el enlace de tu panel</h2><p>Está en tu hoja de Nexus, pestaña "App del móvil".</p></div>';return;}
   if(!codigo){pedirCodigo();return;}
   cargar();
 }
 function pedirCodigo(error){
   d=null;
-  pintar((error?'<div class="aviso">'+esc(error)+'</div>':'')+'<div class="titulo" style="text-align:center">Tu código de dueña</div>'+
+  pintar((error?'<div class="aviso">'+esc(error)+'</div>':'')+'<div class="titulo" style="text-align:center">El código de tu panel</div>'+
     '<input class="campo" id="cod" inputmode="numeric" maxlength="6" placeholder="····" style="text-align:center;font-size:30px;letter-spacing:8px">'+
-    '<button class="ok" onclick="entrar()">Entrar</button><p style="text-align:center;color:#7A6D60;font-size:14px">Está en tu hoja de la Caja → pestaña Ajustes → "Código de la dueña".</p>');
+    '<button class="ok" onclick="entrar()">Entrar</button><p style="text-align:center;color:#7A6D60;font-size:14px">Está en tu hoja de Nexus → pestaña Ajustes → "Código de tu panel".</p>');
 }
 function entrar(){var v=document.getElementById('cod').value.trim();if(!v)return;codigo=v;guardado(K_COD,v);cargar();}
 function cargar(){servidor({accion:'panel',codigo:codigo},function(x){d=x;darCodigosALaApp();pintarPanel();});}
@@ -239,10 +239,10 @@ function pintarPanel(){
 }
 function enlacesParaCompartir(){
   var l=[];
-  if(d.enlaces.appCaja)l.push({titulo:'💶 App de la caja',url:d.enlaces.appCaja,texto:'Para las empleadas. Código de la app: está en Ajustes.'});
+  if(d.enlaces.appCaja)l.push({titulo:'💶 App de la caja',url:d.enlaces.appCaja,texto:'Para tu equipo. Código de la app: está en Ajustes.'});
   if(d.enlaces.appCitas){
-    l.push({titulo:'📅 App de la agenda',url:d.enlaces.appCitas,texto:'Para las empleadas.'});
-    l.push({titulo:'🌐 Reservar (clientas)',url:d.enlaces.reservas||d.enlaces.appCitas.replace('/?c=','/reservar.html?c='),texto:'Para tus clientas: que lo escaneen y reserven.'});
+    l.push({titulo:'📅 App de la agenda',url:d.enlaces.appCitas,texto:'Para tu equipo.'});
+    l.push({titulo:'🌐 Reservar (clientela)',url:d.enlaces.reservas||d.enlaces.appCitas.replace('/?c=','/reservar.html?c='),texto:'Para tu clientela: que lo escaneen y reserven.'});
   }
   l.push({titulo:'👑 Este panel',url:location.href.split('#')[0],texto:'Solo para ti: no lo compartas.'});
   return l;

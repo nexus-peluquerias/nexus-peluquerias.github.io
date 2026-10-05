@@ -131,6 +131,7 @@ function servidor(cuerpo,bien){
   fetch(API,{method:'POST',body:JSON.stringify(cuerpo)})
     .then(function(r){return r.text();})
     .then(function(t){var j=null;try{j=JSON.parse(t);}catch(e){}
+      if(!j&&reintentos>0){reintentos--;setTimeout(enviar,2500);return;} // error de Google al arrancar: otra vez
       if(!j){mal('Google ha respondido algo raro ('+t.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,120)+')');return;}
       if(j.ok){ocupado=false;app.classList.remove('cargando');
         // Un fallo de la página al pintar NO es falta de conexión: se dice tal cual.

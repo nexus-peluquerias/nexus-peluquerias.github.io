@@ -168,6 +168,9 @@ function servidor(nombre,args,bien){
       var j=null; try{j=JSON.parse(t);}catch(e){}
       // Si Google contesta algo que no es la respuesta esperada (una página de
       // error, de permisos…), se enseña un trozo para poder saber qué pasa.
+      // Una página de error de Google (suele ser que tarda demasiado en arrancar): se reintenta
+      // sola, sin riesgo de apuntar dos veces (las operaciones que guardan llevan matrícula).
+      if(!j&&reintentos>0){reintentos--;setTimeout(enviar,2500);return;}
       if(!j){var txt=t.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();mal('Google ha respondido algo raro ('+txt.slice(0,140)+')');return;}
       if(!j.ok){mal(j.error);return;}
       ocupado=false;app.classList.remove('cargando');

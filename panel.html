@@ -199,6 +199,7 @@ function pintarPanel(){
     });
     if(!ci.total)c+='<div class="vacio" style="padding:10px">Hoy no hay citas.</div>';
     h+=tarjeta('📅 Citas de hoy',d.enlaces.appCitas||ci.url,c);
+    if(ci.sinVenir&&ci.sinVenir.lista.length)h+=tarjeta('💤 Hace tiempo que no vienen','',tarjetaSinVenir(ci.sinVenir));
   }
   // Productos
   if(d.inventario){
@@ -218,11 +219,13 @@ function pintarPanel(){
   c+='<div class="tp-sub" style="color:'+(dif>=0?'var(--verde)':'var(--rojo)')+';font-weight:700">'+(dif>=0?'▲ ':'▼ ')+euros(Math.abs(dif))+(dif>=0?' más':' menos')+' que el mes pasado a estas alturas</div>';
   if(d.citas)c+=fila('❌ Plantones',d.citas.mesPlantones+' · '+euros(d.citas.mesPerdido)+' perdidos','var(--rojo)');
   if(d.citas&&d.citas.resenasMes!==undefined)c+=fila('⭐ Reseñas pedidas',String(d.citas.resenasMes));
+  if(d.citas&&d.citas.sinVenir)c+=fila('💤 Han vuelto tras la invitación',String(d.citas.sinVenir.recuperadasMes),'var(--verde)');
   c+=fila('🏷️ Descuentos',euros(m.descuentos),'#A86B12');
   h+=tarjeta('📊 '+nombreMes(d.fecha)+' (hasta hoy)','',c);
   }else if(d.citas){
     h+=tarjeta('📊 '+nombreMes(d.fecha)+' (hasta hoy)','',fila('❌ Plantones',d.citas.mesPlantones+' · '+euros(d.citas.mesPerdido)+' perdidos','var(--rojo)')+
-      (d.citas.resenasMes!==undefined?fila('⭐ Reseñas pedidas',String(d.citas.resenasMes)):''));
+      (d.citas.resenasMes!==undefined?fila('⭐ Reseñas pedidas',String(d.citas.resenasMes)):'')+
+      (d.citas.sinVenir?fila('💤 Han vuelto tras la invitación',String(d.citas.sinVenir.recuperadasMes),'var(--verde)'):''));
   }
   // Compartir: los QR para enseñarlos desde el móvil
   var qrs=enlacesParaCompartir();
@@ -236,6 +239,38 @@ function pintarPanel(){
     '<a href="'+d.enlaces.caja+'" target="_blank" rel="noopener">📄 Hoja de la caja</a>'+(d.inventario?'<a href="'+d.inventario.url+'" target="_blank" rel="noopener">📄 Inventario</a>':'')+
     (d.citas?'<a href="'+d.citas.url+'" target="_blank" rel="noopener">📄 Hoja de citas</a>':'')+'</div>';
   pintar(h);
+}
+// 💤 Quien vino alguna vez, lleva 6 semanas o más sin venir y no tiene cita pedida.
+function tarjetaSinVenir(sv){
+  var c='<div class="tp-sub">Llevan 6 semanas o más sin venir y no tienen cita. Mándales una invitación por WhatsApp: sale de tu móvil.</div>';
+  sv.lista.forEach(function(p,i){
+    c+='<div class="tp-cita"><span class="tp-q">'+esc(p.nombre)+'<small>Última vez: '+esc(p.servicio)+' · '+esc(etiquetaCorta(p.fecha))+(p.con?' · con '+esc(p.con):'')+'</small></span>'+
+      '<span class="sello s-pend">'+p.semanas+' semanas</span></div>';
+    c+=p.invitada
+      ?'<div class="tp-fila" style="background:var(--verde-claro);border-radius:10px;padding:8px 10px"><span style="color:var(--verde);font-weight:700">📲 Invitación enviada</span><button class="enlace" style="margin:0;padding:4px" onclick="invitada('+i+',false)">↩️ Deshacer</button></div>'
+      :'<button class="ok" style="margin:4px 0 10px;padding:12px;font-size:16px;background:#1F8F4E" onclick="invitar('+i+')">📲 Invitar a '+esc(String(p.nombre).split(' ')[0])+' por WhatsApp</button>';
+  });
+  if(sv.total>sv.lista.length)c+='<div class="tp-sub">Y '+(sv.total-sv.lista.length)+' más: saldrán cuando invites a quien está en la lista.</div>';
+  return c;
+}
+function etiquetaCorta(f){var m=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];return Number(f.slice(8,10))+' '+m[Number(f.slice(5,7))-1];}
+function telWhatsapp(t){
+  var tel=String(t||'').replace(/[^\d+]/g,'').replace(/^\+/,'').replace(/^00/,'');
+  return /^[6789]\d{8}$/.test(tel)?'34'+tel:tel;
+}
+// Abre WhatsApp con la invitación escrita y lo apunta en la hoja.
+function invitar(i){
+  var p=d.citas.sinVenir.lista[i];
+  if(!p)return;
+  var texto='¡Hola, '+String(p.nombre).split(' ')[0]+'! 😊 Hace tiempo que no te vemos por '+d.negocio+'. ¿Te apetece pedir cita?'+
+    (d.enlaces.reservas?' Puedes elegir día y hora aquí: '+d.enlaces.reservas:' Escríbenos y te buscamos un hueco.');
+  window.open('https://wa.me/'+telWhatsapp(p.telefono)+'?text='+encodeURIComponent(texto),'_blank');
+  invitada(i,true);
+}
+function invitada(i,hecho){
+  var p=d.citas.sinVenir.lista[i];
+  if(!p)return;
+  servidor({accion:'invitada',codigo:codigo,telefono:p.telefono,hecho:hecho},function(){p.invitada=hecho;pintarPanel();});
 }
 function enlacesParaCompartir(){
   var l=[];

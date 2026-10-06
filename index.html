@@ -140,7 +140,7 @@ function servidor(nombre,args,bien){
     agenda:{accion:'agenda',dia:args[1]},estado:{accion:'estado',token:args[1],estado:args[2]},
     huecosApp:{accion:'huecos-app',servicio:args[1],quien:args[2],desde:args[3],dias:args[4]},nueva:{accion:'nueva',reserva:args[1]},
     cobrarCita:{accion:'cobrar',token:args[1],pago:args[2],importe:args[3],quien:args[4]},deshacerCobro:{accion:'deshacer-cobro',token:args[1]},
-    resena:{accion:'resena',token:args[1]}}[nombre];
+    resena:{accion:'resena',token:args[1]},recordada:{accion:'recordada',token:args[1],hecho:args[2]}}[nombre];
   cuerpo.codigo=args[0];
   // Matrícula única: si falla la conexión, Nexus reintenta sin apuntarlo dos veces.
   var unica=['apuntar','producto','cerrar','cobrar','nueva'].indexOf(cuerpo.accion)!==-1;
@@ -148,7 +148,7 @@ function servidor(nombre,args,bien){
   // Leer (agenda, datos…) siempre se puede reintentar; guardar, solo en Nexus (que no repite).
   var reintentos=!unica||esNexus()?2:0;
   // ¿Esta acción guarda algo (o solo lee)? Cambia el mensaje si algo falla.
-  var guarda=unica||['deshacer','estado','deshacer-cobro','resena'].indexOf(cuerpo.accion)!==-1;
+  var guarda=unica||['deshacer','estado','deshacer-cobro','resena','recordada'].indexOf(cuerpo.accion)!==-1;
   function mal(error){ocupado=false;app.classList.remove('cargando');
     var e=String(error), sinRed=e.indexOf('sin conexión')!==-1||e.indexOf('algo raro')!==-1;
     if(e.indexOf('CODIGO')!==-1){codigo='';guardado(K_COD,null);pedirCodigo('El código ha cambiado o no es correcto');}
@@ -248,8 +248,35 @@ function tarjetaCita(c){
   else{
     h+='<div class="acciones"><button class="b-vino" onclick="marcar(\''+c.token+'\',\'Ha venido\')">✅ Ha venido</button><button class="b-falta" onclick="marcar(\''+c.token+'\',\'No ha venido\')">❌ No ha venido</button></div>';
     if(c.confirmo!=='Sí'&&c.telefono)h+='<a class="llamar" href="tel:'+esc(c.telefono)+'">📞 Llamar a '+esc(c.clienta.split(' ')[0])+' ('+esc(c.telefono)+')</a>';
+    // 📲 Recordatorio por WhatsApp (citas de hoy y de mañana que aún no han pasado).
+    if(c.recordar){
+      h+=c.recordar.hecho
+        ?'<div class="elegido" style="margin:10px 0 0;background:var(--verde-claro)"><span>📲 Recordatorio enviado</span><button class="cambiar" onclick="recordada(\''+c.token+'\',false)">↩️ Deshacer</button></div>'
+        :'<button class="ok" style="margin-top:10px;padding:12px;background:#1F8F4E" onclick="recordar(\''+c.token+'\')">📲 Recordar a '+esc(c.clienta.split(' ')[0])+' por WhatsApp</button>';
+    }
   }
   return h+'</div>';
+}
+// El número en el formato que entiende WhatsApp (móvil español sin prefijo: se le pone el 34).
+function telWhatsapp(t){
+  var tel=String(t||'').replace(/[^\d+]/g,'').replace(/^\+/,'').replace(/^00/,'');
+  return /^[6789]\d{8}$/.test(tel)?'34'+tel:tel;
+}
+// 📲 Abre WhatsApp con el recordatorio escrito (gratis: lo manda la peluquería) y lo apunta.
+function recordar(token){
+  var c=agendaActual.citas.filter(function(x){return x.token===token;})[0];
+  if(!c||!c.recordar)return;
+  var negocio=agendaActual.whatsapp&&agendaActual.whatsapp.negocio;
+  var texto='¡Hola, '+String(c.clienta).split(' ')[0]+'! 😊 Te recordamos tu cita de '+c.recordar.cuando+' a las '+c.h+(negocio?' en '+negocio:'')+' ('+c.servicio+').'+
+    (c.recordar.enlace?' Para confirmar o cancelar, toca aquí: '+c.recordar.enlace:' ¡Te esperamos!');
+  window.open('https://wa.me/'+telWhatsapp(c.telefono)+'?text='+encodeURIComponent(texto),'_blank');
+  recordada(token,true);
+}
+function recordada(token,hecho){
+  servidor('recordada',[codigo,token,hecho],function(){
+    agendaActual.citas.forEach(function(c){if(c.token===token&&c.recordar)c.recordar.hecho=hecho;});
+    pintarAgenda();
+  });
 }
 function marcar(token,estado){
   servidor('estado',[codigo,token,estado],function(){

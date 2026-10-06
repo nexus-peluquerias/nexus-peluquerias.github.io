@@ -263,7 +263,9 @@ function invitar(i){
   var p=d.citas.sinVenir.lista[i];
   if(!p)return;
   var texto='¡Hola, '+String(p.nombre).split(' ')[0]+'! 😊 Hace tiempo que no te vemos por '+d.negocio+'. ¿Te apetece pedir cita?'+
-    (d.enlaces.reservas?' Puedes elegir día y hora aquí: '+d.enlaces.reservas:' Escríbenos y te buscamos un hueco.');
+    (d.enlaces.reservas?' Puedes elegir día y hora aquí: '+d.enlaces.reservas:' Escríbenos y te buscamos un hueco.')+
+    // Es publicidad (LSSI): siempre con la forma de no recibir más.
+    ' (Si prefieres que no te escribamos más, dínoslo y no te molestamos.)';
   window.open('https://wa.me/'+telWhatsapp(p.telefono)+'?text='+encodeURIComponent(texto),'_blank');
   invitada(i,true);
 }
